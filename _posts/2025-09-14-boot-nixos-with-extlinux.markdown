@@ -12,7 +12,7 @@ So I got a 3TiB USB HDD and a 8GiB USB thumb drive to install a whole new system
 
 While I was using the old configuration.nix (installing grub2), I noticed that there is an option, `boot.loader.generic-extlinux-compatible.enable`, which generates a directly usable extlinux.conf. This certainly is much better than I editing and copying those configurations. Therefore I disabled Grub2 and made following steps:
 
-```
+```shell
 mount /dev/disks/by-label/root /mnt -onoatime,nodiratime
 mkdir /mnt/boot
 mount /dev/disks/by-label/boot /mnt/boot -onoatime,nodiratime

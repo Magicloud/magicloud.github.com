@@ -8,7 +8,7 @@ For reason unknown, the Remote desktop app of my Windows 11 does not give the sa
 
 On the first try, I updated the Group Policy, which equals to registry below. The option appeared, I could input the password before connecting. But it did not pass, nor it was saved.
 
-```
+```registry
 Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows NT\Terminal Services]
