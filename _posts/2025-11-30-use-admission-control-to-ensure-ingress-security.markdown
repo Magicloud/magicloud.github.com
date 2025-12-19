@@ -2,7 +2,7 @@
 layout: post
 title:  "Use Admission Control to ensure Ingress security"
 date:   2025-11-30 16:02:17 +0800
-categories:
+categories: K8S
 ---
 Using K8S, one got to setup a lot of Ingresses. Some are directly configured by me, some are from existing manifests, some are indirectly from Helm charts. And needless to say, every Ingress should be protected by TLS.
 

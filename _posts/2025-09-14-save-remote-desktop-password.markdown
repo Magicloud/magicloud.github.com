@@ -2,7 +2,7 @@
 layout: post
 title:  "Save Remote Desktop Password"
 date:   2025-09-14 17:33:17 +0800
-categories: Windows
+categories: RemoteDesktop
 ---
 For reason unknown, the Remote desktop app of my Windows 11 does not give the saving credentials option. After I switched to a longer password length, this is urgenly a problem.
 
