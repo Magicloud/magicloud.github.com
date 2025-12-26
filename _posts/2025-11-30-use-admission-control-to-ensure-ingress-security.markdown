@@ -20,7 +20,7 @@ The returned data is `AdmissionResponse`, and in mutating case, it does not take
 
 One thing to note, AdmissionControl webhook is required to be TLS securied. And the webhook is used within the cluster (directly via service). Hence I cannot use Ingress + TLS to fulfill the requirement. Since I have Step CA and Cert Manager running in my cluster, I need a way to automatically get cert from Cert Manager and install it to the webhook Pod.
 
-This is where [CSI-driver](https://cert-manager.io/docs/usage/csi-driver) comes to help. After installation, a few things worth noting. The webhook is accessed not by FQDN, so `csi.cert-manager.io/dns-names` should at least include `NAME.NAMESPACE.svc`. By default, Step cert expires in 24 hours, but CSI-driver uses a very long default value. Set `csi.cert-manager.io/duration` accordingly. And csi volume is mounted as root, and user/group read only. If the program is not running as root, Pod `spec.securityContext.fsGroup` should be set properly.
+This is where [CSI-driver](https://cert-manager.io/docs/usage/csi-driver) comes to help. After installation, a few things worth noting. The webhook is accessed not by FQDN, so `csi.cert-manager.io/dns-names` should at least include `NAME.NAMESPACE.svc`. By default, Step cert expires in 24 hours, but CSI-driver uses a very long default value. Set `csi.cert-manager.io/duration` accordingly. And csi volume is mounted as root, and user/group read only. If the program is not running as root, Pod `spec.template.spec.volumes.csi.volumeAttributes.csi.cert-manager.io/fs-group` should be set properly.
 
 Then setup the Admission Control. This is where it gets annoying.
 

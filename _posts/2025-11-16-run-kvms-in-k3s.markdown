@@ -36,6 +36,34 @@ The installation includes two parts, [operator](https://github.com/kubevirt/cont
 
 Then a manual task is required. Exposing the CDI upload proxy. Default installation assigned a self-signed cert to its HTTP interface. So I have to use `IngressRouteTCP` and `DNSEndpoint` for Traefik to work.
 
+```yaml
+apiVersion: traefik.io/v1alpha1
+kind: IngressRouteTCP
+metadata:
+  name: cdi-uploadproxy
+  namespace: cdi
+spec:
+  routes:
+  - match: HostSNI(`cdi-uploadproxy.magicloud.lan`)
+    services:
+    - name: cdi-uploadproxy
+      port: 443
+  tls:
+    passthrough: true
+---
+apiVersion: externaldns.k8s.io/v1alpha1
+kind: DNSEndpoint
+metadata:
+  name: cdi-uploadproxy
+  namespace: cdi
+spec:
+  endpoints:
+    - dnsName: cdi-uploadproxy.magicloud.lan
+      recordType: A
+      targets:
+        - 192.168.0.102
+```
+
 Kubevirt lab shows a demo to use CRD directly download disk image from Internet. It does not work now since many things were changed. I used the "upload" way.
 
 There are two types of VM disk, image file and physical disk. But I do not have physical disk usage at hand. So I just talk about image file here.
@@ -56,13 +84,34 @@ With default CNI, there cannot be another NIC attached to the Pod. And in K3S, t
 
 This is where Multus comes in. It is a layer between Pod and actual CNIs to provide the ability to have more NICs in a Pod.
 
-K3S has something special for Multus, hence the installation should follow [k3s doc](https://docs.k3s.io/networking/multus-ipams) rather than Multus doc. After the installation, a few manual modifications are required.
+K3S has something special for Multus, hence the installation should follow [k3s doc](https://docs.k3s.io/networking/multus-ipams) rather than Multus doc. But that one does not work well, either. The manifest should be:
 
-First, check K3S agent endpoint. By default, it is on port 6444. Multus talks to Kubelet which in K3S is `k3s agent` (`k3s server` is also an agent), which takes `lb-server-port` to specify the port.
+```yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: multus
+  namespace: kube-system
+spec:
+  repo: https://rke2-charts.rancher.io
+  chart: rke2-multus
+  targetNamespace: kube-system
+  valuesContent: |-
+    config:
+      fullnameOverride: multus
+      cni_conf:
+        confDir: /var/lib/rancher/k3s/agent/etc/cni/net.d
+        binDir: /var/lib/rancher/k3s/data/cni/
+        kubeconfig: /var/lib/rancher/k3s/agent/etc/cni/net.d/multus.d/multus.kubeconfig
+        # Comment the following line when using rke2-multus < v4.2.202
+        multusAutoconfigDir: /var/lib/rancher/k3s/agent/etc/cni/net.d
+    manifests:
+      dhcpDaemonSet: true
+    thickPlugin:
+      enabled: true
+```
 
-Then checkout the kubeconfig for Multus, path specified during the installing process. The server address `clusters.cluster.server` generated is the in-cluster one. It does not work since Multus works in Node network. Change it to `server: https://localhost:6444`.
-
-After those, Multus is supposed to be able to contact with K3S. But we still cannot tell as it is not happening right now.
+After the installation, Multus is supposed to be able to contact with K3S. But we still cannot tell as it is not happening right now.
 
 For my usage, the next step is creating bridging network attachment definition with DHCP IPAM. Please refer to [cni doc](https://www.cni.dev/plugins/current/main/bridge/) for what the configuration looks like. Kubevirt doc is out-of-dated.
 
